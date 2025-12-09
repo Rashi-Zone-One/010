@@ -150,7 +150,7 @@
     </main>
 
     <footer class="py-8 text-center text-slate-400 text-sm font-bold border-t-2 border-pink-100 mt-12 bg-white/50">
-        Naughty Club System v8.1 - GitHub Pages Ready
+        Naughty Club System v8.2 - GitHub Pages Ready (Fixed Auth)
     </footer>
 
     <!-- Script Logic -->
@@ -175,7 +175,14 @@
             }
             
             try {
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=read`);
+                // เพิ่ม credentials: 'omit' เพื่อแก้ปัญหา Failed to fetch
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=read`, {
+                    redirect: "follow",
+                    credentials: 'omit',
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8",
+                    }
+                });
                 const data = await response.json();
                 
                 renderVillains(data);
@@ -187,7 +194,8 @@
                 console.error("Error fetching data:", error);
                 document.getElementById('villainGrid').innerHTML = `
                     <div class="col-span-full text-center py-10 text-red-400">
-                        โหลดข้อมูลไม่สำเร็จ (ตรวจสอบ URL หรือ Internet)
+                        โหลดข้อมูลไม่สำเร็จ (ตรวจสอบ URL หรือ Internet)<br>
+                        <span class="text-xs">Error: ${error.message}</span>
                     </div>`;
             }
         }
@@ -279,9 +287,12 @@
                     formData.append('fileName', imgData.fileName);
                 }
 
+                // เพิ่ม credentials: 'omit' เพื่อแก้ปัญหา Failed to fetch ตอนส่งข้อมูล
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    redirect: "follow",
+                    credentials: 'omit'
                 });
 
                 alert("บันทึกข้อมูลเรียบร้อย!");
