@@ -150,7 +150,7 @@
     </main>
 
     <footer class="py-8 text-center text-slate-400 text-sm font-bold border-t-2 border-pink-100 mt-12 bg-white/50">
-        Naughty Club System v8.2 - GitHub Pages Ready (Fixed Auth)
+        Naughty Club System v8.3 - Fixed Fetch Headers
     </footer>
 
     <!-- Script Logic -->
@@ -175,14 +175,16 @@
             }
             
             try {
-                // เพิ่ม credentials: 'omit' เพื่อแก้ปัญหา Failed to fetch
+                // แก้ไข: เอา headers ออก และคง credentials: 'omit' ไว้ เพื่อไม่ให้เกิด Preflight request ที่ GAS ไม่รองรับ
                 const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=read`, {
                     redirect: "follow",
-                    credentials: 'omit',
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8",
-                    }
+                    credentials: 'omit'
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
                 
                 renderVillains(data);
