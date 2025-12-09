@@ -150,7 +150,7 @@
     </main>
 
     <footer class="py-8 text-center text-slate-400 text-sm font-bold border-t-2 border-pink-100 mt-12 bg-white/50">
-        Naughty Club System v8.3 - Fixed Fetch Headers
+        Naughty Club System v8.7 - Updated URL
     </footer>
 
     <!-- Script Logic -->
@@ -158,7 +158,7 @@
         // =================================================================
         // ⚠️ เอา URL จาก Google Apps Script (Deploy > Web App) มาใส่ตรงนี้ ⚠️
         // =================================================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuNkPf6iSWLlH63ukp01yZIPOjK4XSRjMimfdXJxNWEh7z19_v--Oe2R5nsJkSeDv5IA/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEGDb5sSYksESmYR7znsyMsfwsmoIonwG7dYRSAkqZ5LJuALc2olrw5H0eOP0To4a3UA/exec"; 
         // =================================================================
 
         // Initial Icon setup
@@ -175,10 +175,14 @@
             }
             
             try {
-                // แก้ไข: เอา headers ออก และคง credentials: 'omit' ไว้ เพื่อไม่ให้เกิด Preflight request ที่ GAS ไม่รองรับ
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=read`, {
+                // แก้ปัญหา Cache และ CORS ด้วย random parameter + referrerPolicy
+                const urlWithParams = `${GOOGLE_SCRIPT_URL}?action=read&t=${Date.now()}`;
+                
+                // ใช้ credentials: 'omit' เพื่อไม่ให้ส่ง cookies (สำคัญมากสำหรับ Google Scripts)
+                const response = await fetch(urlWithParams, {
+                    method: "GET",
                     redirect: "follow",
-                    credentials: 'omit'
+                    credentials: 'omit' 
                 });
                 
                 if (!response.ok) {
@@ -186,7 +190,6 @@
                 }
 
                 const data = await response.json();
-                
                 renderVillains(data);
                 
                 document.getElementById('connectionStatus').innerHTML = `
@@ -194,11 +197,26 @@
                 `;
             } catch (error) {
                 console.error("Error fetching data:", error);
+                
                 document.getElementById('villainGrid').innerHTML = `
-                    <div class="col-span-full text-center py-10 text-red-400">
-                        โหลดข้อมูลไม่สำเร็จ (ตรวจสอบ URL หรือ Internet)<br>
-                        <span class="text-xs">Error: ${error.message}</span>
+                    <div class="col-span-full text-center py-10 bg-red-50 rounded-2xl border-2 border-red-100 p-6">
+                        <i data-lucide="alert-circle" class="w-12 h-12 text-red-400 mx-auto mb-2"></i>
+                        <h3 class="text-red-500 font-bold text-lg mb-2">ยังเชื่อมต่อไม่ได้?</h3>
+                        <p class="text-slate-500 text-sm mb-4">อาจเกิดจากการตั้งค่า Deploy ใน Google Script</p>
+                        
+                        <div class="text-left text-sm text-slate-600 bg-white p-4 rounded-xl border border-slate-200 shadow-sm max-w-md mx-auto">
+                            <p class="font-bold mb-2">ลองทำตามนี้ดูนะครับ:</p>
+                            <ol class="list-decimal pl-5 space-y-2">
+                                <li>ไปที่ Google Apps Script แล้วกดปุ่ม <b>Deploy</b> > <b>Manage deployments</b></li>
+                                <li>กดปุ่ม ✏️ (Edit) ตรงมุมขวา</li>
+                                <li>เปลี่ยน <b>Version</b> เป็น <b>"New version"</b> (สำคัญมาก!)</li>
+                                <li>เปลี่ยน <b>Who has access</b> เป็น <b>"Anyone" (ทุกคน)</b></li>
+                                <li>กด <b>Deploy</b> อีกครั้ง</li>
+                            </ol>
+                        </div>
+                        <p class="mt-4 text-xs text-slate-400">Error detail: ${error.message}</p>
                     </div>`;
+                lucide.createIcons();
             }
         }
 
@@ -289,16 +307,17 @@
                     formData.append('fileName', imgData.fileName);
                 }
 
-                // เพิ่ม credentials: 'omit' เพื่อแก้ปัญหา Failed to fetch ตอนส่งข้อมูล
-                await fetch(GOOGLE_SCRIPT_URL, {
+                // POST: ใช้ no-cors เพื่อเลี่ยงปัญหา Preflight/Redirect และ cache busting
+                await fetch(`${GOOGLE_SCRIPT_URL}?t=${Date.now()}`, {
                     method: 'POST',
-                    body: formData,
-                    redirect: "follow",
-                    credentials: 'omit'
+                    mode: 'no-cors', 
+                    body: formData
                 });
 
                 alert("บันทึกข้อมูลเรียบร้อย!");
-                fetchVillains();
+                
+                // รอ 1.5 วินาทีเพื่อให้ Sheet อัปเดตทัน
+                setTimeout(() => fetchVillains(), 1500);
 
                 nameInput.value = '';
                 projectInput.value = '';
