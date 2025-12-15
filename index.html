@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naughty Club - สมุดจดเด็กดื้อ (Sheets Ver.) 🎀</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Mali & Kanit -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400&family=Mali:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { font-family: 'Mali', cursive; }
+        .fade-in { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #fff1f2; }
+        ::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 10px; border: 2px solid #fff1f2; }
+    </style>
+</head>
+<body class="bg-orange-50 text-slate-600 min-h-screen selection:bg-pink-300 selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md border-b-4 border-pink-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2 group cursor-pointer" onclick="location.reload()">
+                <div class="bg-pink-100 p-2 rounded-2xl group-hover:rotate-12 transition-transform">
+                    <i data-lucide="sparkles" class="text-pink-500 w-6 h-6"></i>
+                </div>
+                <span class="text-2xl font-bold tracking-tight text-pink-500">
+                    Naughty<span class="text-sky-400">Club</span> 🎀
+                </span>
+            </div>
+            
+            <div class="flex items-center space-x-3" id="navControls">
+                <!-- ปุ่มจะถูกสร้างโดย JS ตามสถานะ Login -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        
+        <!-- Decoration -->
+        <div class="fixed top-20 left-10 text-pink-200 opacity-50 -z-10 animate-pulse"><i data-lucide="cloud" class="w-32 h-32"></i></div>
+        <div class="fixed bottom-20 right-10 text-sky-200 opacity-50 -z-10 animate-bounce"><i data-lucide="star" class="w-24 h-24"></i></div>
+
+        <!-- Search Bar -->
+        <div class="mb-8 flex justify-center fade-in relative z-10">
+            <div class="relative w-full max-w-lg group">
+                <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <i data-lucide="search" class="text-pink-400 w-6 h-6 group-hover:scale-110 transition-transform"></i>
+                </div>
+                <input type="text" id="searchInput" 
+                    class="w-full pl-14 pr-6 py-4 bg-white border-4 border-pink-100 rounded-full text-slate-600 placeholder-slate-300 focus:outline-none focus:border-pink-300 focus:ring-4 focus:ring-pink-50 transition-all shadow-lg hover:shadow-xl text-lg"
+                    placeholder="ค้นหาชื่อ, แก๊ง, หรือวีรกรรม..." onkeyup="filterVillains()">
+            </div>
+        </div>
+
+        <!-- Form Section (Hidden) -->
+        <div id="formSection" class="hidden mb-12">
+            <div class="bg-white border-4 border-sky-200 rounded-[2rem] p-8 max-w-xl mx-auto shadow-xl shadow-sky-100 fade-in relative">
+                <button onclick="toggleForm()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <div class="absolute -top-6 -left-6 bg-yellow-300 text-yellow-800 p-3 rounded-full shadow-lg rotate-12"><i data-lucide="crown" class="w-8 h-8"></i></div>
+                
+                <h2 id="formTitle" class="text-2xl font-bold text-slate-700 mb-6 flex items-center justify-center">✨ จดชื่อเด็กดื้อ ✨</h2>
+                
+                <!-- Hidden Edit ID -->
+                <input type="hidden" id="editIdInput">
+
+                <form id="villainForm" class="space-y-5">
+                    <div class="space-y-2 bg-pink-50 p-4 rounded-3xl border-2 border-pink-100">
+                        <label class="block text-sm font-bold text-pink-500 ml-1">📸 รูปคนดื้อ (ถ้ามี)</label>
+                        <div class="flex items-center space-x-4">
+                            <div id="imagePreview" class="w-20 h-20 bg-white rounded-2xl border-2 border-pink-200 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                <i data-lucide="image-plus" class="text-pink-300 w-8 h-8"></i>
+                            </div>
+                            <div class="flex-1">
+                                <label class="cursor-pointer group bg-white border-2 border-dashed border-pink-300 hover:border-pink-500 text-pink-400 hover:text-pink-600 py-3 px-4 rounded-2xl flex items-center transition-all duration-300 w-full justify-center">
+                                    <span class="font-bold">จิ้มเพื่อเลือกรูปเลย!</span>
+                                    <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-bold text-slate-500 mb-2 ml-1">ชื่อ / ฉายา</label><input type="text" id="nameInput" required class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-5 py-3 text-slate-700 focus:border-sky-400 focus:ring-4 focus:ring-sky-100 outline-none transition-all" placeholder="เช่น เจ้าตัวแสบ..."></div>
+                        <div><label class="block text-sm font-bold text-slate-500 mb-2 ml-1">แก๊ง / โปรเจค</label><input type="text" id="projectInput" required class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-5 py-3 text-slate-700 focus:border-sky-400 focus:ring-4 focus:ring-sky-100 outline-none transition-all" placeholder="เช่น แก๊งฟันน้ำนม..."></div>
+                    </div>
+                    
+                    <div><label class="block text-sm font-bold text-slate-500 mb-2 ml-1">📍 สถานที่พบเจอ</label><input type="text" id="locationInput" required class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-5 py-3 text-slate-700 focus:border-sky-400 focus:ring-4 focus:ring-sky-100 outline-none transition-all" placeholder="เช่น สนามเด็กเล่น..."></div>
+                    <div><label class="block text-sm font-bold text-slate-500 mb-2 ml-1">วีรกรรม</label><textarea id="descInput" rows="3" required class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-5 py-3 text-slate-700 focus:border-sky-400 focus:ring-4 focus:ring-sky-100 outline-none transition-all" placeholder="เล่ามาซิ..."></textarea></div>
+                    <div><label class="block text-sm font-bold text-slate-500 mb-2 ml-1">🎫 โดนใบอะไร</label><input type="text" id="cardInput" required class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-5 py-3 text-slate-700 focus:border-sky-400 focus:ring-4 focus:ring-sky-100 outline-none transition-all" placeholder="เช่น ใบเหลือง, ใบแดง..."></div>
+
+                    <div class="flex gap-2">
+                        <button type="button" id="cancelBtn" onclick="resetFormState()" class="hidden w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-500 font-bold rounded-2xl transition-all">ยกเลิก</button>
+                        <button type="submit" id="submitBtn" class="flex-1 bg-sky-400 hover:bg-sky-500 text-white font-bold text-lg py-3 rounded-2xl transition-all shadow-[0_4px_0_rgb(14,165,233)] hover:shadow-[0_2px_0_rgb(14,165,233)] hover:translate-y-[2px] active:shadow-none active:translate-y-[4px]">
+                            บันทึกเข้าสมุดพก! 📝
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div id="villainGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="col-span-full flex flex-col justify-center items-center py-20 text-slate-400 space-y-4">
+                <span class="animate-spin text-4xl">⏳</span>
+                <p class="font-bold">กำลังโหลดข้อมูลจาก Google Sheets...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Auth Modal Overlay -->
+    <div id="authModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative shadow-2xl animate-in fade-in zoom-in duration-300">
+            <button onclick="closeAuthModal()" class="absolute top-6 right-6 text-slate-300 hover:text-slate-500 transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4 text-pink-500"><i data-lucide="heart" class="w-8 h-8 fill-current"></i></div>
+                <h2 id="authTitle" class="text-2xl font-bold text-slate-700">ยินดีต้อนรับ!</h2>
+                <p class="text-slate-400 text-sm mt-1">เข้าสู่ระบบเพื่อจัดการสมุดพก (admin@skr.ac.th)</p>
+            </div>
+            <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+                <div><label class="block text-xs font-bold text-slate-400 ml-3 mb-1">อีเมล</label><input type="email" id="authEmail" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 focus:border-pink-300 outline-none transition-colors" placeholder="name@example.com"></div>
+                <div><label class="block text-xs font-bold text-slate-400 ml-3 mb-1">รหัสผ่าน</label><input type="password" id="authPassword" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 focus:border-pink-300 outline-none transition-colors" placeholder="••••••••"></div>
+                <button type="submit" class="w-full bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-lg py-3.5 rounded-2xl shadow-lg shadow-pink-200 active:scale-95 transition-all mt-4"><span id="authBtnText">เข้าสู่ระบบ</span></button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="py-8 text-center text-slate-400 text-sm font-bold border-t-2 border-pink-100 mt-12 bg-white/50">
+        Naughty Club System v13.0 - Google Sheets Integrated 🎀
+    </footer>
+
+    <script>
+        // =================================================================
+        // ⚠️ เชื่อมต่อ Google Apps Script ⚠️
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzkfXxS4XKTm8Hw7V27Fo65suWIpHagk6UNdEIEF4mjlE64eIloGg3DC2h5L2ATtPAUHg/exec";
+        // =================================================================
+
+        let allVillains = [];
+        let currentUser = null;
+
+        lucide.createIcons();
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchVillains();
+            checkLogin();
+        });
+
+        // --- AUTH SYSTEM (Mock Login for Sheets) ---
+        function checkLogin() {
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+            }
+            updateNavWithUser();
+        }
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            // จำลองการ Login: ถ้าเมลตรง admin ให้สิทธิ์ Admin
+            currentUser = { email: email };
+            
+            if (email === 'admin@skr.ac.th') {
+                currentUser.isAdmin = true;
+                Swal.fire({icon: 'success', title: 'ยินดีต้อนรับแอดมิน!', timer: 1500, showConfirmButton: false});
+            } else {
+                Swal.fire({icon: 'success', title: 'เข้าสู่ระบบสำเร็จ!', timer: 1500, showConfirmButton: false});
+            }
+
+            localStorage.setItem('user', JSON.stringify(currentUser));
+            updateNavWithUser();
+            closeAuthModal();
+            renderVillains(allVillains); 
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('user');
+            updateNavWithUser();
+            renderVillains(allVillains);
+            Swal.fire({icon: 'info', title: 'ออกจากระบบแล้ว', timer: 1500, showConfirmButton: false});
+        }
+
+        function updateNavWithUser() {
+            const nav = document.getElementById('navControls');
+            let html = `
+                <button onclick="toggleForm()" class="flex items-center space-x-2 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white px-5 py-2 rounded-3xl transition-all shadow-md active:scale-95">
+                    <i data-lucide="heart" class="w-4 h-4 fill-current"></i><span class="text-sm font-bold">แอบฟ้อง</span>
+                </button>
+                <div class="h-6 w-px bg-slate-200 mx-1"></div>`;
+            
+            if (currentUser) {
+                const badge = currentUser.isAdmin ? '<span class="bg-red-100 text-red-500 text-[10px] px-2 py-0.5 rounded-full ml-1">ADMIN</span>' : '';
+                html += `
+                    <span class="text-sm font-bold text-slate-600 hidden sm:inline">${currentUser.email}${badge}</span>
+                    <button onclick="logout()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-red-400 transition-colors" title="ออกจากระบบ"><i data-lucide="log-out" class="w-5 h-5"></i></button>`;
+            } else {
+                html += `
+                    <button onclick="openAuthModal()" class="flex items-center space-x-2 text-slate-400 hover:text-pink-500 font-bold transition-colors text-sm px-2"><i data-lucide="log-in" class="w-4 h-4"></i><span>เข้าสู่ระบบ</span></button>`;
+            }
+            nav.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // --- DATA LOGIC (Google Sheets) ---
+        async function fetchVillains() {
+            if(GOOGLE_SCRIPT_URL.includes("XXXX")) return;
+            try {
+                //credentials: 'omit' เพื่อแก้ปัญหา Failed to fetch
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=read&t=${Date.now()}`, { 
+                    redirect: "follow", 
+                    credentials: 'omit' 
+                });
+                
+                if (!response.ok) throw new Error("Network error");
+                const data = await response.json();
+                
+                allVillains = Array.isArray(data) ? data : [];
+                renderVillains(allVillains);
+                document.getElementById('connectionStatus').innerHTML = `<span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span> Connected`;
+            } catch (error) {
+                console.warn("Fetch failed:", error);
+                document.getElementById('villainGrid').innerHTML = `<div class="col-span-full text-center text-red-400">เชื่อมต่อไม่ได้ (ตรวจสอบ Script URL)</div>`;
+            }
+        }
+
+        function renderVillains(villains) {
+            const grid = document.getElementById('villainGrid');
+            grid.innerHTML = ''; 
+            
+            if (!villains || villains.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-10 text-slate-400">ยังไม่มีข้อมูล</div>';
+                return;
+            }
+
+            villains.forEach(villain => {
+                const card = document.createElement('div');
+                card.className = `group relative bg-white rounded-[2rem] overflow-hidden border-2 border-slate-100 hover:border-pink-300 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 fade-in`;
+                
+                let controls = '';
+                if (currentUser && currentUser.isAdmin) {
+                    controls = `
+                        <div class="absolute top-3 right-3 flex gap-2 z-10 opacity-0 group-hover:opacity-100 transition-all">
+                            <button onclick="editVillain('${villain.id}')" class="bg-yellow-400 text-white p-2 rounded-full shadow hover:bg-yellow-500"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <button onclick="deleteVillain('${villain.id}')" class="bg-red-400 text-white p-2 rounded-full shadow hover:bg-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>`;
+                }
+
+                // referrerpolicy="no-referrer" ช่วยให้รูป Google Drive แสดงผลได้
+                card.innerHTML = `
+                    ${controls}
+                    <div class="aspect-square bg-sky-50 p-4 flex items-center justify-center relative overflow-hidden group-hover:bg-pink-50 transition-colors">
+                        <img src="${villain.image}" referrerpolicy="no-referrer" class="w-full h-full object-contain transform group-hover:scale-110 duration-500 drop-shadow-md" onerror="this.src='https://placehold.co/400x400/fecaca/555?text=No+Image'">
+                    </div>
+                    <div class="p-6 pt-4 relative">
+                        <div class="mb-2"><span class="bg-sky-100 text-sky-500 text-[10px] font-bold px-2 py-1 rounded-full border border-sky-200 inline-flex items-center">🏴‍☠️ ${villain.project}</span></div>
+                        <h3 class="font-bold text-xl text-slate-700 mb-1 truncate">${villain.name}</h3>
+                        <div class="flex items-center text-xs text-slate-400 mb-3 font-bold"><i data-lucide="map-pin" class="w-3 h-3 mr-1 text-pink-300"></i> ${villain.location}</div>
+                        <div class="bg-orange-50 rounded-2xl p-4 border border-orange-100 mb-3">
+                            <p class="text-orange-400 text-xs font-black uppercase mb-1 tracking-widest flex items-center"><i data-lucide="alert-circle" class="w-3 h-3 mr-1"></i> วีรกรรม</p>
+                            <p class="text-slate-600 text-sm leading-relaxed line-clamp-2">"${villain.description}"</p>
+                        </div>
+                        <div class="flex items-center justify-end text-xs font-bold text-slate-400 bg-slate-50 p-2 rounded-xl">
+                            <span class="mr-2">โดนใบ:</span>
+                            <span class="text-red-500 flex items-center bg-white px-2 py-0.5 rounded-lg shadow-sm border border-slate-100"><i data-lucide="ticket" class="w-3 h-3 inline mr-1"></i> ${villain.card}</span>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // --- FORM & SUBMIT ---
+        document.getElementById('villainForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                Swal.fire('อุ๊ย!', 'กรุณาเข้าสู่ระบบก่อนแจ้งเบาะแสนะครับ', 'warning');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const originalBtnText = submitBtn.innerText;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="animate-spin inline-block mr-2">⏳</span> กำลังส่งข้อมูล...';
+
+            try {
+                const editId = document.getElementById('editIdInput').value;
+                const payload = {
+                    action: editId ? 'update' : 'create',
+                    id: editId,
+                    name: document.getElementById('nameInput').value,
+                    project: document.getElementById('projectInput').value,
+                    location: document.getElementById('locationInput').value,
+                    description: document.getElementById('descInput').value,
+                    card: document.getElementById('cardInput').value
+                };
+
+                const file = document.getElementById('fileInput').files[0];
+                if (file) {
+                    const imgData = await window.processImage(file);
+                    payload.image = imgData.base64;
+                    payload.mimeType = imgData.mimeType;
+                    payload.fileName = imgData.fileName;
+                }
+
+                // ส่งข้อมูลไป Google Apps Script (POST)
+                await fetch(`${GOOGLE_SCRIPT_URL}?t=${Date.now()}`, {
+                    method: 'POST',
+                    mode: 'no-cors', // สำคัญ: ใช้ no-cors เพื่อให้ส่งผ่าน Browser ได้
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(payload)
+                });
+
+                Swal.fire({icon: 'success', title: 'เรียบร้อย!', showConfirmButton: false, timer: 1500});
+                
+                // รอ 1.5 วินาทีเพื่อให้ Sheet อัปเดต
+                setTimeout(() => {
+                    fetchVillains();
+                    toggleForm();
+                    resetFormState();
+                }, 1500);
+
+            } catch (error) {
+                console.error("Error:", error);
+                Swal.fire('Error', 'เกิดข้อผิดพลาด', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalBtnText;
+            }
+        });
+
+        // Edit Mode
+        function editVillain(id) {
+            const v = allVillains.find(i => i.id == id);
+            if(!v) return;
+            document.getElementById('editIdInput').value = v.id;
+            document.getElementById('nameInput').value = v.name;
+            document.getElementById('projectInput').value = v.project;
+            document.getElementById('locationInput').value = v.location;
+            document.getElementById('descInput').value = v.description;
+            document.getElementById('cardInput').value = v.card;
+            document.getElementById('imagePreview').innerHTML = `<img src="${v.image}" class="w-full h-full object-cover">`;
+            
+            document.getElementById('formTitle').innerText = "✏️ แก้ไขข้อมูล";
+            document.getElementById('submitBtn').innerText = "อัปเดตข้อมูล 🔄";
+            document.getElementById('submitBtn').classList.replace('bg-sky-400', 'bg-yellow-400');
+            document.getElementById('cancelBtn').classList.remove('hidden');
+            
+            document.getElementById('formSection').classList.remove('hidden');
+            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetFormState() {
+            document.getElementById('villainForm').reset();
+            document.getElementById('editIdInput').value = '';
+            document.getElementById('imagePreview').innerHTML = '<i data-lucide="image-plus" class="text-pink-300 w-8 h-8"></i>';
+            document.getElementById('formTitle').innerText = "✨ จดชื่อเด็กดื้อ ✨";
+            document.getElementById('submitBtn').innerText = "บันทึกเข้าสมุดพก! 📝";
+            document.getElementById('submitBtn').classList.replace('bg-yellow-400', 'bg-sky-400');
+            document.getElementById('cancelBtn').classList.add('hidden');
+            document.getElementById('formSection').classList.add('hidden');
+        }
+
+        // Delete Logic
+        function deleteVillain(id) {
+            Swal.fire({
+                title: 'ลบจริงนะ?',
+                text: "ข้อมูลจะหายไปถาวรเลยนะ!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({title: 'กำลังลบ...', didOpen: () => Swal.showLoading()});
+                    try {
+                        const payload = { action: 'delete', id: id };
+                        
+                        await fetch(`${GOOGLE_SCRIPT_URL}?t=${Date.now()}`, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'text/plain' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        setTimeout(() => {
+                            Swal.fire('ลบเสร็จสิ้น!', '', 'success');
+                            fetchVillains();
+                        }, 1500);
+                    } catch (err) {
+                        Swal.fire('Error', 'ลบไม่สำเร็จ', 'error');
+                    }
+                }
+            });
+        }
+
+        // Helper: Image Compression
+        window.processImage = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_SIZE = 600; 
+                        let w = img.width, h = img.height;
+                        if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE/w; w = MAX_SIZE; } } 
+                        else { if (h > MAX_SIZE) { w *= MAX_SIZE/h; h = MAX_SIZE; } }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                        const parts = dataUrl.split(',');
+                        resolve({ base64: parts[1], mimeType: parts[0].match(/:(.*?);/)[1], fileName: 'upload.jpg' });
+                    };
+                };
+            });
+        };
+
+        function toggleForm() {
+            if (!currentUser) {
+                Swal.fire('อุ๊ย!', 'กรุณาเข้าสู่ระบบก่อนแจ้งเบาะแสนะครับ', 'warning');
+                return;
+            }
+            const form = document.getElementById('formSection');
+            if (form.classList.contains('hidden')) {
+                resetFormState();
+                form.classList.remove('hidden');
+            } else {
+                form.classList.add('hidden');
+            }
+        }
+        
+        function handleFileSelect(e) {
+            if (e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (ev) => document.getElementById('imagePreview').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`;
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        }
+
+        function filterVillains() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allVillains.filter(v => {
+                const name = (v.name || '').toLowerCase();
+                const project = (v.project || '').toLowerCase();
+                const desc = (v.description || '').toLowerCase();
+                return name.includes(searchText) || project.includes(searchText) || desc.includes(searchText);
+            });
+            renderVillains(filtered);
+        }
+    </script>
+</body>
+</html>
